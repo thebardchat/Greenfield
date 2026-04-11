@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
+from app.middleware.audit import AuditMiddleware
 from app.routers import (
     auth,
     claims,
@@ -28,6 +29,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# HIPAA audit trail — logs every request (fire-and-forget, non-blocking)
+app.add_middleware(AuditMiddleware)
 
 app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
 app.include_router(organizations.router, prefix="/api/organizations", tags=["organizations"])

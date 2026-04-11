@@ -9,10 +9,10 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     # Database
-    database_url: str = "postgresql+asyncpg://claimcruncher:claimcruncher@localhost:5432/claimcruncher"
+    database_url: str = "postgresql+asyncpg://claimcruncher:claimcruncher@localhost:5433/claimcruncher"
 
     # Redis
-    redis_url: str = "redis://localhost:6379/0"
+    redis_url: str = "redis://localhost:6380/0"
 
     # Auth
     jwt_secret: str = "change-me-in-production"
@@ -22,7 +22,7 @@ class Settings(BaseSettings):
     # Storage
     storage_backend: str = "local"
     upload_dir: str = "./uploads"
-    s3_endpoint: str = "http://localhost:9000"
+    s3_endpoint: str = "http://localhost:9002"
     s3_bucket: str = "claim-documents"
     s3_access_key: str = ""
     s3_secret_key: str = ""
