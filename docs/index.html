@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Greenfield — Claim Cruncher Medical Billing Platform</title>
+  <meta name="description" content="Claim Cruncher — medical billing intake platform. Python/FastAPI. Built by Gavin Brazelton. Streamline your medical billing workflow."/>
+  <meta property="og:image" content="social-card.svg"/>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{background:#f0fdf4;color:#1a3a2a;font-family:'Courier New',monospace;overflow-x:hidden;min-height:100vh;padding-bottom:60px}
+    canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;opacity:0.4}
+    .content{position:relative;z-index:1;max-width:900px;margin:0 auto;padding:2rem 1.5rem}
+    .hero{text-align:center;padding:4rem 0 2rem}
+    .hero-badge{display:inline-block;background:rgba(5,150,105,0.1);border:1px solid rgba(5,150,105,0.3);color:#059669;font-size:0.75rem;letter-spacing:0.2em;text-transform:uppercase;padding:0.4rem 1.2rem;border-radius:2px;margin-bottom:2rem}
+    h1{font-size:clamp(2.2rem,6vw,4rem);font-weight:900;letter-spacing:0.03em;line-height:1.1;color:#064e3b}
+    .subtitle{font-size:1rem;color:#047857;margin:1rem 0 0.5rem;letter-spacing:0.05em}
+    .builder-tag{display:inline-block;background:rgba(5,150,105,0.08);border:1px solid rgba(5,150,105,0.2);color:#065f46;font-size:0.8rem;padding:0.3rem 1rem;border-radius:2px;letter-spacing:0.1em;margin-bottom:2rem}
+    .referral-bar{border:1px solid rgba(245,158,11,0.3);background:rgba(245,158,11,0.05);border-radius:4px;padding:0.8rem 1.5rem;text-align:center;margin:0 auto 2rem;max-width:600px;font-size:0.8rem}
+    .referral-bar a{color:#d97706}
+    .section{margin:3rem 0;padding:2rem;background:rgba(255,255,255,0.8);border:1px solid rgba(5,150,105,0.2);border-radius:6px;box-shadow:0 2px 12px rgba(5,150,105,0.06)}
+    .section-title{font-size:0.85rem;letter-spacing:0.25em;text-transform:uppercase;color:#059669;margin-bottom:1.5rem;display:flex;align-items:center;gap:0.8rem}
+    .section-title::after{content:'';flex:1;height:1px;background:rgba(5,150,105,0.2)}
+    .workflow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.5rem}
+    .flow-card{background:rgba(240,253,244,0.8);border:1px solid rgba(5,150,105,0.2);border-radius:6px;padding:1.5rem;text-align:center;transition:border-color 0.3s,transform 0.3s;position:relative}
+    .flow-card::after{content:attr(data-step);position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:#059669;color:white;font-size:0.65rem;letter-spacing:0.1em;padding:0.2rem 0.6rem;border-radius:10px}
+    .flow-card:hover{border-color:rgba(5,150,105,0.5);transform:translateY(-2px)}
+    .flow-icon{font-size:2rem;margin-bottom:0.8rem;margin-top:0.5rem}
+    .flow-label{font-size:0.95rem;font-weight:bold;color:#065f46;margin-bottom:0.5rem}
+    .flow-desc{font-size:0.8rem;color:#6b7280;line-height:1.6}
+    .feature-list{list-style:none}
+    .feature-list li{padding:0.6rem 0;border-bottom:1px solid rgba(5,150,105,0.1);color:#374151;font-size:0.9rem;display:flex;gap:0.8rem}
+    .feature-list li::before{content:'✓';color:#059669;flex-shrink:0;font-weight:bold}
+    .tech-tags{display:flex;flex-wrap:wrap;gap:0.6rem;margin-top:1rem}
+    .tag{background:rgba(240,253,244,0.8);border:1px solid rgba(5,150,105,0.2);color:#059669;font-size:0.75rem;padding:0.3rem 0.8rem;border-radius:2px;letter-spacing:0.1em}
+    .links{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin:2rem 0}
+    .btn{display:inline-flex;align-items:center;gap:0.5rem;padding:0.8rem 2rem;font-family:monospace;font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;border-radius:3px;transition:all 0.2s}
+    .btn-primary{background:#059669;border:1px solid #059669;color:white}
+    .btn-primary:hover{background:#047857}
+    .btn-secondary{background:rgba(0,0,0,0.03);border:1px solid rgba(5,150,105,0.3);color:#059669}
+    .btn-secondary:hover{background:rgba(5,150,105,0.05)}
+    .footer{text-align:center;padding:2rem 0 1rem;font-size:0.8rem;color:#6b7280;border-top:1px solid rgba(5,150,105,0.1);margin-top:3rem}
+    .api-demo{background:rgba(240,253,244,0.5);border:1px solid rgba(5,150,105,0.15);border-radius:4px;padding:1rem;margin-top:1rem;font-size:0.8rem;color:#065f46;line-height:1.8}
+    .method{display:inline-block;padding:0.1rem 0.4rem;border-radius:2px;font-size:0.7rem;font-weight:bold;margin-right:0.5rem}
+    .get{background:#dbeafe;color:#1d4ed8}
+    .post{background:#d1fae5;color:#065f46}
+    .put{background:#fef3c7;color:#92400e}
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="content">
+  <div class="referral-bar">
+    <strong>Try Claude free for 2 weeks</strong> — the AI behind this entire ecosystem. <a href="https://claude.ai/referral/4fAMYN9Ing">Start your free trial →</a>
+  </div>
+
+  <div class="hero">
+    <div class="hero-badge">Medical Billing Platform</div>
+    <h1>Greenfield<br>Claim Cruncher</h1>
+    <div class="subtitle">Medical billing intake platform · Python / FastAPI</div>
+    <div class="builder-tag">Built by Gavin Brazelton</div>
+  </div>
+
+  <div class="links">
+    <a href="https://github.com/thebardchat/Greenfield" class="btn btn-primary">View on GitHub →</a>
+    <a href="https://github.com/thebardchat" class="btn btn-secondary">thebardchat</a>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Billing Workflow</div>
+    <div class="workflow-grid">
+      <div class="flow-card" data-step="STEP 1">
+        <div class="flow-icon">📋</div>
+        <div class="flow-label">Intake</div>
+        <div class="flow-desc">Capture patient and claim information through structured forms</div>
+      </div>
+      <div class="flow-card" data-step="STEP 2">
+        <div class="flow-icon">🔍</div>
+        <div class="flow-label">Validate</div>
+        <div class="flow-desc">Verify claim data, codes, and coverage eligibility</div>
+      </div>
+      <div class="flow-card" data-step="STEP 3">
+        <div class="flow-icon">⚙️</div>
+        <div class="flow-label">Process</div>
+        <div class="flow-desc">Crunch the claim through automated billing logic</div>
+      </div>
+      <div class="flow-card" data-step="STEP 4">
+        <div class="flow-icon">✅</div>
+        <div class="flow-label">Submit</div>
+        <div class="flow-desc">Route clean claims for payment and track status</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Features</div>
+    <ul class="feature-list">
+      <li>Medical billing claim intake and processing pipeline</li>
+      <li>FastAPI backend with structured claim validation</li>
+      <li>Patient and provider data management</li>
+      <li>Claim status tracking and reporting</li>
+      <li>ICD / CPT code validation and lookup</li>
+      <li>Export-ready billing summaries</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <div class="section-title">API Endpoints</div>
+    <div class="api-demo">
+      <div><span class="method post">POST</span>/claims/intake — Submit new claim</div>
+      <div><span class="method get">GET</span>/claims/{id} — Get claim status</div>
+      <div><span class="method put">PUT</span>/claims/{id}/validate — Validate claim data</div>
+      <div><span class="method get">GET</span>/reports/summary — Billing summary report</div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Technology</div>
+    <div class="tech-tags">
+      <span class="tag">Python 3</span>
+      <span class="tag">FastAPI</span>
+      <span class="tag">Pydantic</span>
+      <span class="tag">Medical Billing</span>
+      <span class="tag">ICD Codes</span>
+      <span class="tag">CPT Codes</span>
+      <span class="tag">REST API</span>
+      <span class="tag">SQLite</span>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Built by Shane Brazelton + Claude Anthropic · Hazel Green, AL</p>
+    <p style="margin-top:0.5rem"><a href="https://github.com/thebardchat/Greenfield" style="color:#6b7280">github.com/thebardchat/Greenfield</a></p>
+  </div>
+</div>
+
+<div style="position:fixed;bottom:0;left:0;right:0;z-index:999;background:linear-gradient(90deg,#060910,#0b1124,#060910);border-top:1px solid #1e3060;padding:0.6rem 1.5rem;display:flex;align-items:center;justify-content:center;gap:1.2rem;font-family:monospace;font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;">
+  <span style="width:7px;height:7px;border-radius:50%;background:#f59e0b;box-shadow:0 0 8px #f59e0b;display:inline-block;"></span>
+  <span style="color:#3d5a78;">Try Claude free for 2 weeks —</span>
+  <a href="https://claude.ai/referral/4fAMYN9Ing" target="_blank" rel="noopener" style="color:#00b4d8;text-decoration:none;">Start your free trial →</a>
+  <span style="color:#3d5a78;">· AI behind this ecosystem</span>
+</div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+let W, H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();
+window.addEventListener('resize',resize);
+
+// Gentle particle field - clean medical aesthetic
+const particles=[];
+for(let i=0;i<60;i++){
+  particles.push({
+    x:Math.random()*1600-200,
+    y:Math.random()*1000,
+    vx:(Math.random()-0.5)*0.2,
+    vy:(Math.random()-0.5)*0.2,
+    r:Math.random()*4+2,
+    a:Math.random()*0.12+0.03,
+    hue:Math.random()*30+150
+  });
+}
+
+function draw(){
+  ctx.fillStyle='rgba(240,253,244,0.1)';
+  ctx.fillRect(0,0,W,H);
+
+  particles.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy;
+    if(p.x<-50)p.x=W+50;if(p.x>W+50)p.x=-50;
+    if(p.y<-50)p.y=H+50;if(p.y>H+50)p.y=-50;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle=`hsla(${p.hue},70%,40%,${p.a})`;
+    ctx.fill();
+  });
+
+  // Cross/plus symbols (medical)
+  const time=Date.now()*0.001;
+  for(let i=0;i<5;i++){
+    const x=100+i*220;
+    const y=H*0.5+Math.sin(time*0.5+i)*100;
+    const s=12;
+    const a=0.04+0.02*Math.sin(time+i);
+    ctx.strokeStyle=`rgba(5,150,105,${a})`;
+    ctx.lineWidth=2;
+    ctx.beginPath();ctx.moveTo(x-s,y);ctx.lineTo(x+s,y);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(x,y-s);ctx.lineTo(x,y+s);ctx.stroke();
+  }
+  requestAnimationFrame(draw);
+}
+draw();
+</script>
+</body>
+</html>
