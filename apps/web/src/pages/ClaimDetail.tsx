@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { claimsApi } from '../lib/api';
 import {
   claimStatusColors,
@@ -9,7 +9,7 @@ import {
   formatDate,
 } from '../lib/statusColors';
 import type { Claim, ClaimStatus } from '../types';
-import { ArrowLeftIcon } from '@heroicons/react/24/outline';
+import { ArrowLeftIcon, SparklesIcon, ExclamationTriangleIcon, FlagIcon } from '@heroicons/react/24/outline';
 
 export default function ClaimDetail() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +17,7 @@ export default function ClaimDetail() {
   const [loading, setLoading] = useState(true);
   const [transitioning, setTransitioning] = useState(false);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!id) return;
@@ -224,6 +225,43 @@ export default function ClaimDetail() {
             </p>
           </div>
         )}
+      </div>
+
+
+      {/* Cruncher AI Actions */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-200 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <SparklesIcon className="w-5 h-5 text-blue-600" />
+          <h3 className="text-base font-semibold text-blue-900">Cruncher AI</h3>
+        </div>
+        <p className="text-sm text-blue-700 mb-4">
+          Let Claude analyze this claim for billing errors, look up codes, or draft a denial appeal.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <button
+            onClick={() => navigate(`/cruncher?claim_id=${claim.id}`)}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            <SparklesIcon className="w-4 h-4" />
+            Chat about this claim
+          </button>
+          <button
+            onClick={() => navigate(`/cruncher?claim_id=${claim.id}&action=analyze`)}
+            className="flex items-center gap-2 px-4 py-2 bg-white text-blue-700 text-sm font-medium rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors"
+          >
+            <FlagIcon className="w-4 h-4" />
+            Auto-flag issues
+          </button>
+          {(claim.status === 'denied' || claim.status === 'appealed') && (
+            <button
+              onClick={() => navigate(`/cruncher?claim_id=${claim.id}&action=denial`)}
+              className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <ExclamationTriangleIcon className="w-4 h-4" />
+              Denial analysis + appeal
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Claim Lines */}

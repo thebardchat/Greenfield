@@ -9,6 +9,7 @@ import ClaimDetail from './pages/ClaimDetail';
 import Facilities from './pages/Facilities';
 import Tickets from './pages/Tickets';
 import Credentials from './pages/Credentials';
+import Cruncher from './pages/Cruncher';
 
 function App() {
   return (
@@ -29,6 +30,7 @@ function App() {
             <Route path="/facilities" element={<Facilities />} />
             <Route path="/tickets" element={<Tickets />} />
             <Route path="/credentials" element={<Credentials />} />
+            <Route path="/cruncher" element={<Cruncher />} />
           </Route>
         </Routes>
       </BrowserRouter>

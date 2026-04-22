@@ -202,3 +202,103 @@ export const healthApi = {
 };
 
 export default api;
+
+// Cruncher AI
+export const cruncherApi = {
+  // Returns fetch response for SSE streaming — consume in component with reader
+  chatStream: async (
+    message: string,
+    claimId?: string,
+    includeRag: boolean = true
+  ): Promise<Response> => {
+    return fetch('/api/cruncher/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('access_token') || ''}`,
+      },
+      body: JSON.stringify({
+        message,
+        claim_id: claimId || null,
+        include_rag: includeRag,
+      }),
+    });
+  },
+
+  analyzeClaim: async (claimId: string) => {
+    const { data } = await api.post(`/cruncher/analyze-claim/${claimId}`);
+    return data;
+  },
+
+  denialAnalysis: async (claimId: string, denialReason: string) => {
+    const { data } = await api.post(`/cruncher/denial-analysis/${claimId}`, {
+      denial_reason: denialReason,
+    });
+    return data;
+  },
+
+  parseEOB: async (ocrText: string) => {
+    const { data } = await api.post('/cruncher/parse-eob', { ocr_text: ocrText });
+    return data;
+  },
+
+  health: async () => {
+    const { data } = await api.get('/cruncher/health');
+    return data;
+  },
+};
+
+// Documents
+export const documentsApi = {
+  upload: async (file: File, claimId?: string) => {
+    const form = new FormData();
+    form.append('file', file);
+    if (claimId) form.append('claim_id', claimId);
+    const { data } = await api.post('/documents/upload', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return data;
+  },
+  get: async (documentId: string) => {
+    const { data } = await api.get(`/documents/${documentId}`);
+    return data;
+  },
+  getOcr: async (documentId: string) => {
+    const { data } = await api.get(`/documents/${documentId}/ocr`);
+    return data;
+  },
+  downloadUrl: (documentId: string) =>
+    `/api/documents/${documentId}/download`,
+};
+
+// Reports
+export const reportsApi = {
+  claimsSummary: async (dateFrom?: string, dateTo?: string, facilityId?: string) => {
+    const { data } = await api.get('/reports/claims-summary', {
+      params: { date_from: dateFrom, date_to: dateTo, facility_id: facilityId },
+    });
+    return data;
+  },
+  productivity: async (dateFrom?: string, dateTo?: string) => {
+    const { data } = await api.get('/reports/productivity', {
+      params: { date_from: dateFrom, date_to: dateTo },
+    });
+    return data;
+  },
+  credentialsStatus: async (daysAhead: number = 90) => {
+    const { data } = await api.get('/reports/credentials-status', {
+      params: { days_ahead: daysAhead },
+    });
+    return data;
+  },
+  denialTrends: async (dateFrom?: string, dateTo?: string) => {
+    const { data } = await api.get('/reports/denial-trends', {
+      params: { date_from: dateFrom, date_to: dateTo },
+    });
+    return data;
+  },
+  exportUrl: (params: Record<string, string>) => {
+    const qs = new URLSearchParams(params).toString();
+    return `/api/reports/export?${qs}`;
+  },
+};

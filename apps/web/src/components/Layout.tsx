@@ -7,6 +7,7 @@ import {
   BuildingOffice2Icon,
   TicketIcon,
   IdentificationIcon,
+  SparklesIcon,
   Bars3Icon,
   XMarkIcon,
   ArrowRightStartOnRectangleIcon,
@@ -41,15 +42,18 @@ export default function Layout() {
 
   const sidebar = (
     <div className="flex flex-col h-full bg-slate-900 text-white w-64">
+      {/* Logo */}
       <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-700">
         <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-sm font-bold">
           CC
         </div>
         <div>
           <div className="font-semibold text-sm">Claim Cruncher</div>
-          <div className="text-xs text-slate-400">Medical Billing</div>
+          <div className="text-xs text-slate-400">Medical Billing AI</div>
         </div>
       </div>
+
+      {/* Main nav */}
       <nav className="flex-1 px-3 py-4 space-y-1">
         {navigation.map((item) => (
           <Link
@@ -66,14 +70,46 @@ export default function Layout() {
             {item.name}
           </Link>
         ))}
+
+        {/* Cruncher AI — visually separated */}
+        <div className="pt-3 mt-3 border-t border-slate-700">
+          <Link
+            to="/cruncher"
+            onClick={() => setSidebarOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+              isActive('/cruncher')
+                ? 'bg-blue-600 text-white'
+                : 'text-blue-300 hover:bg-blue-600/20 hover:text-blue-200'
+            }`}
+          >
+            <SparklesIcon className="w-5 h-5 shrink-0" />
+            <span>Cruncher AI</span>
+            <span className="ml-auto text-[10px] font-semibold px-1.5 py-0.5 rounded bg-blue-500/30 text-blue-200">
+              AI
+            </span>
+          </Link>
+        </div>
       </nav>
+
+      {/* Footer */}
       <div className="px-3 py-4 border-t border-slate-700">
-        <div className="px-3 py-2 text-xs text-slate-500">
-          Claim Cruncher v1.0
+        <div className="px-3 py-1.5 text-xs text-slate-500">
+          Claim Cruncher v1.0 · Powered by Claude
         </div>
       </div>
     </div>
   );
+
+  // Determine page title
+  const pageTitle = (() => {
+    if (location.pathname === '/') return 'Dashboard';
+    if (location.pathname.startsWith('/claims')) return 'Claims';
+    if (location.pathname.startsWith('/facilities')) return 'Facilities';
+    if (location.pathname.startsWith('/tickets')) return 'Tickets';
+    if (location.pathname.startsWith('/credentials')) return 'Credentials';
+    if (location.pathname.startsWith('/cruncher')) return 'Cruncher AI';
+    return 'Claim Cruncher';
+  })();
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-100">
@@ -116,12 +152,11 @@ export default function Layout() {
             >
               <Bars3Icon className="w-6 h-6" />
             </button>
-            <h1 className="text-lg font-semibold text-slate-800 hidden sm:block">
-              {navigation.find((n) =>
-                n.href === '/'
-                  ? location.pathname === '/'
-                  : location.pathname.startsWith(n.href)
-              )?.name || 'Claim Cruncher'}
+            <h1 className="text-lg font-semibold text-slate-800 hidden sm:block flex items-center gap-2">
+              {location.pathname.startsWith('/cruncher') && (
+                <SparklesIcon className="w-5 h-5 text-blue-500 inline mr-1" />
+              )}
+              {pageTitle}
             </h1>
           </div>
           <div className="flex items-center gap-4">
