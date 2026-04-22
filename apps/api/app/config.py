@@ -35,6 +35,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     cruncher_model: str = "claude-sonnet-4-6"
     cruncher_flag_model: str = "claude-haiku-4-5-20251001"
+    anthropic_baa: bool = False  # set True only after signing Anthropic's BAA
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

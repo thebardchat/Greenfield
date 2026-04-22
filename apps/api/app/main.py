@@ -46,5 +46,11 @@ app.include_router(cruncher.router, prefix="/api/cruncher", tags=["cruncher"])
 
 
 @app.get("/health")
+@app.get("/api/health")
 async def health():
-    return {"status": "ok", "service": settings.app_name}
+    return {
+        "status": "ok",
+        "service": settings.app_name,
+        "version": "0.1.0",
+        "environment": settings.app_env,
+    }
