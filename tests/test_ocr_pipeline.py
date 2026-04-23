@@ -88,15 +88,18 @@ async def run_test():
 
         print(f"Generated synthetic {file_type} test file: {test_file}")
 
+        from pathlib import Path
         provider = TesseractProvider()
-        result = await provider.extract(test_file)
+        mime = "application/pdf" if file_type == "PDF" else "image/png"
+        result = await provider.extract(Path(test_file), mime)
 
         print(f"\n--- OCR Result ---")
         print(f"Provider:    {result.provider}")
         print(f"Confidence:  {result.confidence:.3f}")
         print(f"Page count:  {result.page_count}")
         print(f"Text length: {len(result.text)} chars")
-        print(f"\nStructured fields extracted: {list(result.structured.keys())}")
+        structured = getattr(result, 'structured', None) or {}
+        print(f"\nStructured fields extracted: {list(structured.keys())}")
 
         print(f"\nOCR text preview (first 400 chars):")
         print(result.text[:400])
