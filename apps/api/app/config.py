@@ -37,6 +37,10 @@ class Settings(BaseSettings):
     cruncher_flag_model: str = "claude-haiku-4-5-20251001"
     anthropic_baa: bool = False  # set True only after signing Anthropic's BAA
 
+    # HIPAA: BAA must be signed with Anthropic before sending PHI to Claude API
+    # Set BAA_SIGNED=true ONLY after a Business Associate Agreement is executed.
+    baa_signed: bool = False
+
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
 

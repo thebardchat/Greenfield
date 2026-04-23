@@ -29,6 +29,7 @@ from app.dependencies import get_db
 from app.middleware.rbac import get_current_user, require_permission
 from app.models.claim import Claim
 from app.models.user import User
+from app.safety.baa_check import require_baa
 
 # Shared package path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "..", "..", "packages"))
@@ -316,7 +317,11 @@ async def cruncher_chat(
 
     The assistant has live access to claim data and can flag claims,
     create tickets, and search prior claims — all in real time.
+
+    BAA required when claim_id is provided (claim data sent to Claude API).
     """
+    if body.claim_id:
+        require_baa()
     client = get_cruncher_client()
     org_id = str(current_user.organization_id) if current_user.organization_id else ""
 
@@ -372,7 +377,9 @@ async def analyze_claim(
 
     Fetches claim + lines, runs auto-flag scan, returns structured findings.
     Flags and tickets are written to the database in real time.
+    BAA required — claim data is sent to Claude API.
     """
+    require_baa()
     client = get_cruncher_client()
     org_id = str(current_user.organization_id) if current_user.organization_id else ""
     rag = ClaimRAG(db=db, org_id=org_id)
@@ -428,7 +435,9 @@ async def denial_analysis(
     Provide the denial reason from the payer's remittance/EOB.
     Returns root cause, whether it's disputable, exact appeal steps,
     draft appeal letter language, and required documentation.
+    BAA required — claim data is sent to Claude API.
     """
+    require_baa()
     client = get_cruncher_client()
     org_id = str(current_user.organization_id) if current_user.organization_id else ""
     rag = ClaimRAG(db=db, org_id=org_id)
