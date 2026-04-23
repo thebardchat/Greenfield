@@ -1,74 +1,76 @@
-# Claim Cruncher — Status Audit
-> Generated: 2026-04-23 | Session 2 audit
+# Claim Cruncher — Status
+> Updated: 2026-04-23 | Session 2 audit + implementation
 
 ## Module Status
 
 | Module | Status | Notes |
 |--------|--------|-------|
-| **Auth & RBAC** | Complete | JWT (HS256), argon2 password hashing, 6 roles, permission matrix |
-| **Claims CRUD** | Complete | Full lifecycle, status transitions validated, org-scoped |
+| **Auth & RBAC** | Complete | JWT (HS256), argon2 passwords, 6 roles, permission matrix |
+| **Claims CRUD** | Complete | Full lifecycle, status transitions, org-scoped, priority/flag |
 | **Patients** | Complete | PHI model, org-scoped, soft deletes |
-| **Facilities** | Complete | CRUD, org-scoped |
-| **Credentials** | Complete | NPI/license/DEA expiry tracking, alert creation |
+| **Facilities** | Complete | CRUD, org-scoped, assignment endpoints |
+| **Organizations** | Complete | CRUD, super-admin scoped |
 | **Tickets** | Complete | Work queue, priority, status, threaded comments |
-| **Audit Middleware** | Complete | HIPAA-compliant, fire-and-forget, every PHI route |
-| **RBAC Middleware** | Complete | Dependency injection pattern, org isolation |
-| **Database Schema** | Complete | 13 tables via SQL migrations, pgvector extension |
+| **Credentials** | Complete | NPI/license/DEA/board cert tracking, expiry endpoint |
+| **Documents** | Complete | Upload, download, OCR status polling, local + S3 backends |
+| **Reports** | Complete | claims summary, productivity, denial trends, credentials status, CSV export |
+| **Audit Middleware** | Complete | HIPAA-compliant, fire-and-forget, every PHI route logged |
+| **RBAC Middleware** | Complete | Dependency injection, org isolation enforced |
+| **Database Schema** | Complete | 14 tables via SQL migrations (13 core + pgvector embeddings) |
 | **Docker Compose** | Complete | Postgres 16 + pgvector, Redis, MinIO |
 | **Shared Packages** | Complete | ClaimStatus enum, VALID_TRANSITIONS, UserRole, has_permission |
-| **OCR Pipeline (Tesseract)** | **Fixed this session** | Implemented TesseractProvider; 0.938 confidence on test PDF |
-| **Worker DB Setup** | **Fixed this session** | arq startup/shutdown now initializes async SQLAlchemy pool |
-| **BAA Safety Check** | **Added this session** | `/api/safety/baa_check.py`; all Cruncher routes gated |
-| **Cruncher Router** | **Fixed this session** | chat, analyze-claim, denial-analysis wired with BAA gate |
-| **Cruncher AI Client** | **Fixed this session** | Full Claude API implementation: chat, auto_flag, analyze_denial |
-| **Cruncher System Prompt** | **Updated this session** | Precise, claim-ID-citing, no PHI in responses |
-| **Documents Router** | Stub | upload, download, OCR results endpoints not implemented |
-| **Organizations Router** | Stub | CRUD not implemented |
-| **Reports Router** | Stub | CSV/txt export not implemented |
-| **Worker: credential_expiry** | Stub | 30/60/90 day scan not implemented |
-| **Worker: report_generation** | Stub | Export generation not implemented |
-| **Cloud OCR (Document AI)** | Stub | Fallback provider not implemented |
-| **Cloud OCR (Textract)** | Stub | Fallback provider not implemented |
-| **Frontend (React/Vite)** | Not Started | apps/web/ scaffold only |
-| **Alembic Config** | Not Started | pyproject.toml lists alembic but no alembic.ini or env.py |
-| **pgvector RAG** | Not Started | services/cruncher/rag/ empty |
+| **OCR Pipeline (Tesseract)** | Complete | 300 DPI, per-page confidence, verified 0.933 on test PDF |
+| **Worker: credential_expiry** | **Implemented** | 90/60/30-day milestones, idempotent, daily cron 07:00 UTC |
+| **Worker: report_generation** | **Implemented** | 4 report types (claims, productivity, denial trends, credentials), CSV output |
+| **Worker: shared DB session** | **Implemented** | `tasks/_db.py` — single engine pool shared across all 3 tasks |
+| **BAA Safety Check** | Complete | `apps/api/app/safety/baa_check.py` — all Cruncher routes gated, 403 if unset |
+| **Cruncher AI (chat)** | Complete | Streaming SSE, agentic tool use, RAG context injection |
+| **Cruncher AI (auto-flag)** | Complete | Haiku model, structured JSON flags |
+| **Cruncher AI (denial analysis)** | Complete | Sonnet model, full appeal strategy |
+| **Cruncher AI (EOB parsing)** | Complete | Haiku, structured field extraction from OCR text |
+| **Cruncher Tools** | Complete | 7 tools: get_claim, flag_claim, create_ticket, search_similar, etc. |
+| **RAG (pgvector)** | Complete | ClaimRAG: local TF-IDF embeddings, semantic search, context formatting |
+| **OCR Cloud (Document AI)** | Stub | Cloud fallback not wired — needs GCP credentials |
+| **OCR Cloud (Textract)** | Stub | Cloud fallback not wired — needs AWS credentials |
+| **Alembic** | Not started | Migrations are raw SQL (014 files) — no Alembic ORM wiring yet |
+| **Frontend (React/Vite)** | Not started | `apps/web/` scaffold only |
 
-## Broken Imports / Config Gaps
+## API Routes (47 total)
 
-| Item | Status |
-|------|--------|
-| `sys.path.insert` for shared packages | Works but fragile — consider pip install -e packages/shared |
-| `sys.path.insert` for cruncher service in router | Works but fragile |
-| Worker: `RedisSettings()` with no args | Fixed → `RedisSettings.from_dsn(REDIS_URL)` |
-| No `.env` file in git | Correct — `.env.example` is tracked, `.env` is gitignored |
-| `BAA_SIGNED` missing from config | Fixed — added to Settings with `baa_signed: bool = False` |
+| Router | Endpoints |
+|--------|-----------|
+| auth | login, me, refresh, register |
+| claims | list, create, get, update, transition |
+| credentials | list, create, get, update, expiring |
+| cruncher | chat (SSE), analyze-claim, denial-analysis, parse-eob, health |
+| documents | upload, get, download, ocr-results, delete |
+| facilities | list, create, get, update |
+| organizations | list, create, get, update, delete |
+| patients | list, create, get, update |
+| reports | claims-summary, productivity, denial-trends, credentials-status, export |
+| tickets | list, create, get, update |
 
-## Missing Dependencies
+## Worker Tasks
 
-| Package | Location | Status |
-|---------|----------|--------|
-| `tesseract-ocr` (system) | worker | Installed this session |
-| `pytesseract` | worker | Installed this session |
-| `pdf2image` | worker | Installed this session |
-| `Pillow` | worker | Installed this session |
-| `fpdf2` | tests only | Installed this session |
-| `poppler-utils` (system) | worker | Already present |
+| Task | Trigger | Description |
+|------|---------|-------------|
+| `process_document` | Per upload (arq enqueue) | OCR → DB → claim advance → RAG → auto-flag |
+| `check_credential_expiry` | Daily cron 07:00 UTC | 90/60/30-day alert creation, status updates |
+| `generate_report` | On-demand (arq enqueue) | CSV export: claims, productivity, denial trends, credentials |
 
-## Security / HIPAA Findings
+## Security / HIPAA
 
-- **BAA gate added** — all 3 Cruncher routes now call `require_baa()` before touching claim data
-- **PHI never logged** — audit middleware logs resource type only, not payload
-- **Soft deletes enforced** — all queries filter `deleted_at IS NULL`
-- **Org isolation** — all claim/patient queries scoped to `current_user.organization_id`
-- **JWT short-lived** — 15-minute access tokens, 7-day refresh tokens
+- BAA gate on all Cruncher routes transmitting claim data (403 if `BAA_SIGNED=false`)
+- HIPAA audit log on every request (append-only, fire-and-forget)
+- Soft deletes only — no hard deletes on PHI tables
+- Org isolation on every claim/patient/document query
+- JWT 15-min access / 7-day refresh tokens
+- argon2id password hashing
+- PHI de-identification in CruncherClient when `ANTHROPIC_BAA=false`
 
-## Next Sessions (Suggested Priority)
+## Next Priorities
 
-1. **Documents router** — PDF upload, checksum, enqueue OCR job
-2. **Organizations router** — CRUD
-3. **Alembic setup** — wire migrations into Alembic for `alembic upgrade head`
-4. **Worker: credential_expiry** — 30/60/90 day scan + Discord/email alert
-5. **Reports router** — CSV export for billing software
-6. **Cloud OCR providers** — DocumentAI and Textract fallbacks
-7. **RAG** — pgvector over claim history for Cruncher context
-8. **Frontend** — React portal for claim submission and biller dashboard
+1. Alembic integration — wire 14 SQL migrations into `alembic env.py`
+2. Cloud OCR fallback — Document AI (GCP) or Textract (AWS)
+3. Frontend — React portal for document upload + biller dashboard
+4. E2E test suite — pytest + httpx TestClient against real Postgres

@@ -26,29 +26,12 @@ import os
 from pathlib import Path
 
 import sqlalchemy as sa
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..ocr import TesseractProvider, OcrResult, OcrStatus
+from ._db import get_session as _get_session
 
 log = logging.getLogger(__name__)
-
-# ─────────────────────── DB helpers ──────────────────────────────────
-
-DATABASE_URL = os.getenv(
-    "DATABASE_URL",
-    "postgresql+asyncpg://claimcruncher:claimcruncher@localhost:5433/claimcruncher",
-)
-
-_engine = None
-_Session = None
-
-
-def _get_session() -> async_sessionmaker[AsyncSession]:
-    global _engine, _Session
-    if _Session is None:
-        _engine = create_async_engine(DATABASE_URL, pool_size=5, max_overflow=10)
-        _Session = async_sessionmaker(_engine, expire_on_commit=False)
-    return _Session
 
 
 # ─────────────────────── Constants ───────────────────────────────────

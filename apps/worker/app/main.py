@@ -1,5 +1,4 @@
-"""
-arq worker entry point.
+"""arq worker entry point.
 
 Start with:
     cd apps/worker
@@ -15,40 +14,42 @@ import os
 from arq import cron
 from arq.connections import RedisSettings
 
+from .tasks.credential_expiry import check_credential_expiry
 from .tasks.ocr_pipeline import process_document
+from .tasks.report_generation import generate_report
 
 log = logging.getLogger(__name__)
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6380/0")
 
-# ─────────────────────── Worker settings ─────────────────────────────
-
 
 class WorkerSettings:
+    """arq WorkerSettings — task registry and scheduling.
+
+    Tasks:
+      process_document       — OCR pipeline (enqueued per upload)
+      check_credential_expiry — Daily credential expiry scan + alerts
+      generate_report        — On-demand CSV/summary report generation
     """
-    arq WorkerSettings class.  arq discovers this by module path.
 
-    Tasks registered here:
-      - process_document: OCR pipeline (enqueued by document upload endpoint)
-    """
+    functions = [process_document, check_credential_expiry, generate_report]
 
-    # Task functions
-    functions = [process_document]
+    cron_jobs = [
+        # Run credential expiry check daily at 07:00 UTC
+        cron(check_credential_expiry, hour=7, minute=0),
+    ]
 
-    # Redis connection
     redis_settings = RedisSettings.from_dsn(REDIS_URL)
 
-    # Concurrency — keep low on Pi 5 (CPU-bound OCR)
+    # Keep concurrency low on Pi 5 (OCR is CPU-bound)
     max_jobs = int(os.getenv("WORKER_MAX_JOBS", "4"))
 
-    # Retry settings
     max_tries = 3
     retry_jobs = True
 
-    # Job timeout (seconds) — 300s for large multi-page PDFs
+    # OCR can take up to 5 min for large multi-page PDFs
     job_timeout = int(os.getenv("WORKER_JOB_TIMEOUT", "300"))
 
-    # Health poll interval
     health_check_interval = 30
     health_check_key = "claim-cruncher:worker:health"
 
